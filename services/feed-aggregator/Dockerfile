@@ -1,4 +1,4 @@
-FROM node:24-alpine
+FROM node:26-alpine
 WORKDIR /services/feed-aggregator
 COPY feed-aggregator/package*.json ./
 RUN npm ci --omit=dev --no-fund --no-audit
