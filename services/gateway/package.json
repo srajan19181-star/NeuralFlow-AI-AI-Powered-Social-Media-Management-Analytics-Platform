@@ -8,7 +8,7 @@
     "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.133.0",
+    "@anthropic-ai/sdk": "^0.135.0",
     "@fastify/multipart": "^10.1.3",
     "axios": "^1.16.0",
     "bullmq": "^5.1.0",
