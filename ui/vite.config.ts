@@ -1,4 +1,8 @@
 import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
+import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
-export default defineConfig({ plugins: [vue(), tailwindcss()], server: { host: '0.0.0.0', port: 5173, strictPort: true } })
+
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
+  server: { host: '0.0.0.0', port: 5173, strictPort: false },
+})

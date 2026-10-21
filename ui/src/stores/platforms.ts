@@ -1,5 +1,4 @@
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { defineStore, ref, computed } from './storeCore'
 import axios from 'axios'
 
 export interface PlatformStatus {
@@ -104,7 +103,9 @@ export const usePlatformsStore = defineStore('platforms', () => {
   const tokenExpiryDismissed = ref(false)
 
   const expiringAccounts = computed(() =>
-    tokenExpiry.value.filter((a: TokenExpiryAccount) => !a.isValid || (a.daysLeft !== null && a.daysLeft < 7))
+    Array.isArray(tokenExpiry.value)
+      ? tokenExpiry.value.filter((a: TokenExpiryAccount) => !a.isValid || (a.daysLeft !== null && a.daysLeft < 7))
+      : []
   )
 
   const hasExpiryWarning = computed(() =>
@@ -114,9 +115,10 @@ export const usePlatformsStore = defineStore('platforms', () => {
   async function fetchTokenExpiry() {
     try {
       const res = await axios.get('/api/meta/token-expiry')
-      tokenExpiry.value = res.data.accounts || []
+      tokenExpiry.value = Array.isArray(res.data?.accounts) ? res.data.accounts : []
     } catch (err) {
       console.error('Token expiry check error:', err)
+      tokenExpiry.value = []
     }
   }
 
@@ -134,17 +136,17 @@ export const usePlatformsStore = defineStore('platforms', () => {
   async function fetchMetaConnections() {
     // Capability availability must not prevent saved accounts from loading.
     const capabilities = axios.get('/api/platforms/capabilities')
-      .then(res => { publishingPlatforms.value = res.data.publishing || [] })
+      .then(res => { publishingPlatforms.value = Array.isArray(res.data?.publishing) ? res.data.publishing : [] })
       .catch(() => { /* keep the last known publishing capabilities */ })
     try {
       const res = await axios.get('/api/credentials')
-      const data = res.data
-      connectedPages.value = data.facebook?.pages || []
-      allFbPages.value = data.facebook?.allPages || []
-      connectedIgAccounts.value = data.instagram?.accounts || []
-      allIgAccounts.value = data.instagram?.allAccounts || []
-      connectedPinterestBoards.value = data.pinterest?.boards || []
-      allPinterestBoards.value = data.pinterest?.allBoards || []
+      const data = typeof res.data === 'object' && res.data !== null ? res.data : {}
+      connectedPages.value = Array.isArray(data.facebook?.pages) ? data.facebook.pages : []
+      allFbPages.value = Array.isArray(data.facebook?.allPages) ? data.facebook.allPages : []
+      connectedIgAccounts.value = Array.isArray(data.instagram?.accounts) ? data.instagram.accounts : []
+      allIgAccounts.value = Array.isArray(data.instagram?.allAccounts) ? data.instagram.allAccounts : []
+      connectedPinterestBoards.value = Array.isArray(data.pinterest?.boards) ? data.pinterest.boards : []
+      allPinterestBoards.value = Array.isArray(data.pinterest?.allBoards) ? data.pinterest.allBoards : []
       tiktokConnected.value = data.tiktok?.connected ?? false
       tiktokUsername.value = data.tiktok?.username || null
     } catch (_) {
@@ -156,7 +158,7 @@ export const usePlatformsStore = defineStore('platforms', () => {
   async function fetchPinterestCredentials() {
     try {
       const res = await axios.get('/api/credentials/pinterest-app')
-      pinterestCredentials.value = res.data
+      pinterestCredentials.value = typeof res.data === 'object' && res.data !== null ? res.data : { configured: false }
     } catch (err) {
       console.error('Pinterest credentials fetch error:', err)
     }
@@ -235,7 +237,7 @@ export const usePlatformsStore = defineStore('platforms', () => {
   async function fetchTikTokCredentials() {
     try {
       const res = await axios.get('/api/credentials/tiktok-app')
-      tiktokCredentials.value = res.data
+      tiktokCredentials.value = typeof res.data === 'object' && res.data !== null ? res.data : { configured: false }
     } catch (err) {
       console.error('TikTok credentials fetch error:', err)
     }
@@ -286,16 +288,19 @@ export const usePlatformsStore = defineStore('platforms', () => {
     loading.value = true
     try {
       const res = await axios.get('/feeds/platform-status')
-      statuses.value = res.data
+      statuses.value = Array.isArray(res.data) ? res.data : []
     } catch (err) {
       console.error('Platform status error:', err)
+      statuses.value = []
     } finally {
       loading.value = false
     }
   }
 
   function getStatus(platform: string): PlatformStatus | undefined {
-    return statuses.value.find((s: PlatformStatus) => s.platform === platform)
+    return Array.isArray(statuses.value)
+      ? statuses.value.find((s: PlatformStatus) => s.platform === platform)
+      : undefined
   }
 
   function isConnected(platform: string): boolean {
@@ -307,7 +312,7 @@ export const usePlatformsStore = defineStore('platforms', () => {
   async function fetchMetaCredentials() {
     try {
       const res = await axios.get('/api/credentials/meta-app')
-      metaCredentials.value = res.data
+      metaCredentials.value = typeof res.data === 'object' && res.data !== null ? res.data : { configured: false }
     } catch (err) {
       console.error('Meta credentials fetch error:', err)
     }
@@ -344,7 +349,7 @@ export const usePlatformsStore = defineStore('platforms', () => {
   async function fetchMetaDiscovery() {
     try {
       const res = await axios.get('/api/auth/meta/discovered')
-      metaDiscovery.value = res.data.pending ? res.data : null
+      metaDiscovery.value = res.data?.pending ? res.data : null
     } catch (err) {
       metaError.value = 'Could not load available Meta accounts'
     }

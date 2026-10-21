@@ -1,5 +1,4 @@
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { defineStore, ref, computed } from './storeCore'
 import axios from 'axios'
 
 export interface Workspace {

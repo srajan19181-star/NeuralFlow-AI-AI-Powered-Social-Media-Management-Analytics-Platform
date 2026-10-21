@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 const ts = require('typescript');
-const pinia = require('pinia');
+const pinia = { setActivePinia: () => {}, createPinia: () => {} };
 const axios = { post: async () => ({ data: {} }), defaults: { headers: { common: {} } } };
 const modules = new Map();
 function load(file) {
@@ -13,13 +13,13 @@ function load(file) {
   const module = { exports: {} }; modules.set(file, module.exports);
   const code = ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText;
   vm.runInNewContext(code, { module, exports: module.exports, crypto: require('crypto').webcrypto, console,
-    require: name => name === 'axios' ? axios : name.startsWith('.') ? load(path.resolve(path.dirname(file), name) + '.ts') : require(name) });
+    require: name => name === 'axios' ? axios : name === 'react' ? require('react') : name.startsWith('.') ? load(path.resolve(path.dirname(file), name) + '.ts') : require(name) });
   return module.exports;
 }
 const { useComposeStore, draftMediaUrl } = load('../src/stores/compose.ts');
 let store;
 beforeEach(() => {
-  pinia.setActivePinia(pinia.createPinia()); store = useComposeStore(); store.content = 'Keep this post';
+  useComposeStore.$reset?.(); store = useComposeStore(); store.content = 'Keep this post';
   store.destinations = [{ key: 'facebook:one', platform: 'facebook', accountId: 'one', selected: true }, { key: 'facebook:two', platform: 'facebook', accountId: 'two', selected: true }];
 });
 test('failed deliveries retain content and report each account', async () => {

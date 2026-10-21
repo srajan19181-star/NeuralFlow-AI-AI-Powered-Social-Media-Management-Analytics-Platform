@@ -1,5 +1,4 @@
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { defineStore, ref } from './storeCore'
 import axios from 'axios'
 
 export interface AiConfig {

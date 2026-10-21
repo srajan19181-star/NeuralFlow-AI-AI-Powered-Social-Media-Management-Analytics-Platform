@@ -1,5 +1,4 @@
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { defineStore, ref, computed } from './storeCore'
 import axios from 'axios'
 import { usePlatformsStore, PLATFORM_META } from './platforms'
 import { naiveDatetimeToUtc } from '../utils/timezone'
@@ -99,7 +98,7 @@ export const useComposeStore = defineStore('compose', () => {
   })
 
   function initDestinations() {
-    const platformsStore = usePlatformsStore()
+    const platformsStore = usePlatformsStore.getState()
     const next: Destination[] = []
 
     for (const p of STANDARD_PLATFORMS) {

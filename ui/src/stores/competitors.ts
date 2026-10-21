@@ -1,5 +1,4 @@
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { defineStore, ref } from './storeCore'
 import axios from 'axios'
 
 export interface CompetitorProfile {
@@ -108,9 +107,10 @@ export const useCompetitorStore = defineStore('competitors', () => {
     error.value = null
     try {
       const res = await axios.get('/api/competitors')
-      competitors.value = res.data
+      competitors.value = Array.isArray(res.data) ? res.data : []
     } catch (err: any) {
       error.value = err.response?.data?.error || 'Failed to load competitors'
+      competitors.value = []
     } finally {
       loading.value = false
     }

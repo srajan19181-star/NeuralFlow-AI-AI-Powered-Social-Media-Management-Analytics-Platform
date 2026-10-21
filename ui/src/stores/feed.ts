@@ -1,5 +1,4 @@
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { defineStore, ref, computed } from './storeCore'
 import axios from 'axios'
 import { usePlatformsStore } from './platforms'
 import { useWorkspaceStore } from './workspace'
@@ -31,7 +30,8 @@ export const useFeedStore = defineStore('feed', () => {
   const searchQuery = ref('')
 
   const filteredItems = computed(() => {
-    const platformsStore = usePlatformsStore()
+    const platformsStore = usePlatformsStore.getState()
+    if (!Array.isArray(items.value)) return []
     return items.value.filter((item) => {
       if (!activePlatforms.value.has(item.platform)) return false
       if (activeTag.value && !item.tags.includes(activeTag.value)) return false
@@ -60,7 +60,7 @@ export const useFeedStore = defineStore('feed', () => {
   })
 
   async function fetchFeeds(platform?: string) {
-    const workspaceStore = useWorkspaceStore()
+    const workspaceStore = useWorkspaceStore.getState()
     const workspaceId = workspaceStore.activeWorkspaceId
     loading.value = true
     try {
@@ -68,9 +68,14 @@ export const useFeedStore = defineStore('feed', () => {
       if (platform) params.platform = platform
       if (activeTag.value) params.tag = activeTag.value
       const res = await axios.get('/feeds/feeds', { params })
-      if (workspaceStore.activeWorkspaceId === workspaceId) items.value = res.data.items || []
+      if (workspaceStore.activeWorkspaceId === workspaceId) {
+        items.value = Array.isArray(res.data?.items) ? res.data.items : []
+      }
     } catch (err) {
       console.error('Feed fetch error:', err)
+      if (workspaceStore.activeWorkspaceId === workspaceId) {
+        items.value = []
+      }
     } finally {
       loading.value = false
     }
