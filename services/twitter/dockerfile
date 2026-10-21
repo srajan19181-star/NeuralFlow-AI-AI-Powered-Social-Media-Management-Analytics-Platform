@@ -1,4 +1,4 @@
-FROM node:24-alpine
+FROM node:26-alpine
 WORKDIR /services/twitter
 COPY twitter/package*.json ./
 RUN npm ci --omit=dev --no-fund --no-audit
